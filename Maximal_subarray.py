@@ -1,3 +1,4 @@
+#分治算法版本
 def find_max_crossing_subarray(A, low, high, mid):
 	left_sum = float('-inf')
 	sum = 0
