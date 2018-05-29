@@ -1,5 +1,5 @@
 class matrix(object):
-	def _init_(rows):
+	def _init_(self, rows):
 		self.m = [[0 for i  in range(0, rows)] for i in range(0, rows)]
 		self.rows = rows
 
@@ -18,12 +18,29 @@ def Matrix_multiply(A, B):
 #矩阵分治乘法
 def Matrix_multiply_recursive(A, B):
 	n = A.rows
-	C = matrix(n)
+	C = matrix()
+	C._init_(n)
 	if n == 1:
-		C[1][1] = A[1][1] * B[1][1]
+		C.m[0][0] = A.m[0][0] * B.m[0][0]
 	else:
-		C[1][1] = Matrix_multiply_recursive(A[1][1], B[1][1]) + Matrix_multiply(A[1][2], B[2][1])
-		C[1][2] = Matrix_multiply_recursive(A[1][1], B[1][2]) + Matrix_multiply(A[1][2], B[2][2])
-		C[2][1] = Matrix_multiply_recursive(A[2][1], B[1][1]) + Matrix_multiply(A[2][2], B[2][1])
-		C[2][2] = Matrix_multiply_recursive(A[2][1], B[1][2]) + Matrix_multiply(A[2][2], B[2][2])
+		C.m[0][0] = Matrix_multiply_recursive(A.m[0][0], B.m[0][0]) + Matrix_multiply(A.m[0][1], B.m[1][0])
+		C.m[0][1] = Matrix_multiply_recursive(A.m[0][0], B.m[0][1]) + Matrix_multiply(A.m[0][1], B.m[1][1])
+		C.m[1][0] = Matrix_multiply_recursive(A.m[1][0], B.m[0][0]) + Matrix_multiply(A.m[1][1], B.m[1][0])
+		C.m[1][1] = Matrix_multiply_recursive(A.m[1][0], B.m[0][1]) + Matrix_multiply(A.m[1][1], B.m[1][1])
 	return C
+
+
+A = matrix()
+A._init_(2)
+B = matrix()
+B._init_(2)
+A.m[0][0] = 1
+A.m[0][1] = 2
+A.m[1][0] = 2
+A.m[1][1] = 1
+B.m[0][0] = 3
+B.m[0][1] = 1
+B.m[1][0] = 1
+B.m[1][1] = 3
+C = Matrix_multiply_recursive(A,B)
+print(C.m)
