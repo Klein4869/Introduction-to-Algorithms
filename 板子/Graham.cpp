@@ -19,7 +19,7 @@ struct Point {
 	double y;
 }p[40000];
 
-double cross_product(Point p0, point p1, Point p2){
+double cross_product(Point p0, Point p1, Point p2){
 	return (p1.x - p0.x)*(p2.y - p0.y) - (p2.x - p0.x)*(p1.y - p0.y);
 }
 
@@ -47,6 +47,10 @@ vector<Point> graham_scan(int n){
 		}
 	}
 	swap(p[0], p[index]);
+	ch.push_back(p[0]);
+
+	sort(p+1, p+n, cmp);//按极角排序
+	
 	ch.push_back(p[1]);
 	ch.push_back(p[2]);
 	for (int i = 3; i < n; ++i){

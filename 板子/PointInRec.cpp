@@ -1,3 +1,7 @@
+/*
+判断点是否在凸多边形内
+*/
+
 #include <iostream>
 #include <vector>
 
@@ -26,7 +30,7 @@ bool checkInRect(Point p[], Point *pt, vector<int> p_vector){//对于顺序排�
 vector<int> adjustThePoint( Point p[], int pnum){//将点排序（逆时针），给一个基准向量，然后依次插入即可
     vector<int> p_vector;
     
-    if (pnum < 3) {
+    if (pnum < 3) {//只有两个点的时候维持原状
         return p_vector;
     }
     
