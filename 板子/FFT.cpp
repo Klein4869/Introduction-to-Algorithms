@@ -1,72 +1,120 @@
-#include<cstdio>
-#include<cstring>
-#include<iostream>
-#include<cmath>
+#include <stdio.h>
+#include <string.h>
+#include <iostream>
+#include <algorithm>
+#include <math.h>
+
+#define forUp(i,s,e) for(int i = s; i <= e; ++i)
+#define forDown(i,s,e) for(int i = s; i >= e; --i)
 
 using namespace std;
 
-const int N=301000;
-const double pi=acos(-1.0);
-struct node{
-    double x,y;   //x:实部  y:虚部 
-    node (double xx=0,double yy=0)
-    {
-        x=xx;y=yy;
+const double PI = acos(-1.0);
+
+struct Complex{
+    double x, y;
+    Complex(double _x = 0.0, double _y = 0.0){
+        x = _x;
+        y = _y;
+    }
+    Complex operator -(const Complex &b)const{
+        return Complex(x-b.x, y-b.y);
+    }
+    Complex operator +(const Complex &b)const{
+        return Complex(x+b.x, y+b.y);
+    }
+    Complex operator *(const Complex &b)const{//???
+        return Complex(x*b.x-y*b.y, x*b.y+y*b.x);
     }
 };
-node a[N],b[N],omega[N],a_omega[N];
-int n,m,fn;
 
-node operator +(const node &a,const node &b){return node(a.x+b.x,a.y+b.y);}
-node operator -(const node &a,const node &b){return node(a.x-b.x,a.y-b.y);}
-node operator *(const node &a,const node &b){return node (a.x*b.x-a.y*b.y,a.x*b.y+a.y*b.x);}
-
-void init(int n)
-{
-    //欧拉公式 w=e^(2*k*pi/n)=(cos(2*k*pi/n),sin(2*k*pi/n)i)
-    for (int i=0;i<n;i++)
-    {
-        omega[i]=node(cos(2.0*i*pi/n),sin(2.0*i*pi/n));//w
-        a_omega[i]=node(cos(2.0*i*pi/n),-sin(2.0*i*pi/n));//w^-1
-    }
-} 
-
-void FFT(int n,node *a,node *w)
-{
-    int i,j=0,k;
-    for (i=0;i<n;i++)
-    {
-        if (i>j) swap(a[i],a[j]);
-        for (int l=n>>1;(j^=l)<l;l>>=1);   ///？？？
-    }
-    for (i=2;i<=n;i<<=1)   //i:合并的区间长度 
-    {
-        int m=i>>1;
-        for (j=0;j<n;j+=i)
-            for (k=0;k<m;k++)
-            {
-                node z=a[j+k+m]*w[n/i*k];  ///蝴蝶操作
-                a[j+m+k]=a[j+k]-z;
-                a[j+k]=a[j+k]+z;
-            }
+/*
+ *FFT和IFFT之前的反转变换，位置i和（i的二进制反转后位置互换），len必须取2的幂（有的代码也有按位取反的做法，不知是否可行）
+*/
+void change(Complex y[], int len){
+    int i, j ,k;
+    for(i = 1, j = len/2; i < len-1; ++i){
+        if (i<j) {
+            swap(y[i], y[j]);
+        }
+        k = len/2;
+        while(j >= k){
+            j -= k;
+            k /= 2;
+        }
+        if(j < k) j += k;
     }
 }
 
-int main()
-{
-    //输入 
-    scanf("%d%d",&n,&m);
-    for (int i=0;i<=n;i++) scanf("%lf",&a[i].x);
-    for (int i=0;i<=m;i++) scanf("%lf",&b[i].x);
-    //
-    fn=1;
-    while (fn<=n+m) fn<<=1;
-    init(fn);  //处理主n次方根 
-    FFT(fn,a,omega);   //转成点值表达 
-    FFT(fn,b,omega);
-    for (int i=0;i<=fn;i++)
-        a[i]=a[i]*b[i];
-    FFT(fn,a,a_omega);  //转成系数表达
-    for (int i=0;i<=n+m;i++) printf("%d ",(int)(a[i].x/fn+0.5));  //最后一定要除以n!!!
-    return 0; 
+/*
+ *
+ *
+*/
+void fft(Complex y[], int len, int on){
+    change(y, len);
+    for (int h = 2;h <= len;h <<= 1) {
+        Complex wn(cos(-on*2*PI/h), sin(-on*2*PI/h));
+        for (int j = 0;j < len;j+=h) {
+            Complex w(1, 0);
+            for(int k = j; k < j+h/2;++k){
+                Complex u = y[k];
+                Complex t = w*y[k+h/2];
+                y[k] = u+t;
+                y[k+h/2] = u-t;
+                w = w*wn;
+            }
+        }
+    }
+    if(on == -1){
+        for(int i = 0; i < len; ++i)
+            y[i].x /= len;
+    }
+}
+
+const int MAXN = 200010;
+Complex x1[MAXN], x2[MAXN];
+string s1, s2;
+int sum[MAXN];
+
+int main(){
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+
+    while (cin >> s1 >> s2) {
+        int len1 = s1.length();
+        int len2 = s2.length();
+
+        int len = 1;
+        while(len < len1*2 || len < len2 * 2) len <<= 1;
+        //初始化复数数组
+        forUp(i, 0, len1-1)
+            x1[i] = Complex(s1[len1-1-i] - '0', 0);
+        forUp(i, len1, len-1)
+            x1[i] = Complex(0, 0);
+        forUp(i, 0, len2-1)
+            x2[i] = Complex(s2[len2-1-i] - '0', 0);
+        forUp(i, len2, len-1)
+            x2[i] = Complex(0, 0);
+        //
+        //求DFT
+        fft(x1, len, 1);
+        fft(x2, len, 1);
+        forUp(i, 0, len-1)
+            x1[i] = x1[i]*x2[i];
+        //IDFT
+        fft(x1, len, -1);
+        forUp(i, 0, len-1)
+            sum[i] = (int)(x1[i].x+0.5);
+        forUp(i, 0, len){
+            sum[i+1] += sum[i]/10;
+            sum[i] %= 10;
+        }
+        len = len1+len2-1;
+        while(sum[len] <= 0 && len > 0) len--;
+        forDown(i, len, 0)
+            cout << sum[i];
+        cout << "\n";
+
+    }
+    return 0;
 }
